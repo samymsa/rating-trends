@@ -1,0 +1,27 @@
+import react from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [react()],
+  base: "", // This removes the leading slash from asset URLs
+  build: {
+    rollupOptions: {
+      input: {
+        popup: "popup.html",
+        background: "src/background.ts",
+        content: "src/content.ts",
+      },
+      output: {
+        entryFileNames: "[name].js",
+        chunkFileNames: "chunks/[name]-[hash].js",
+        assetFileNames: "assets/[name]-[hash][extname]",
+      },
+    },
+  },
+  resolve: {
+    alias: {
+      url: "./src/polyfills/url.ts",
+    },
+  },
+});

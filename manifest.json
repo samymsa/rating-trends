@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Rating Trends 2",
+  "version": "1.0",
+  "description": "See how a place’s reputation changes over time.",
+  "permissions": ["declarativeContent", "scripting", "tabs", "activeTab"],
+  "host_permissions": ["https://google.com/maps/*"],
+  "content_scripts": [
+    {
+      "matches": ["https://*/maps/*"],
+      "js": ["dist/content.js"]
+    }
+  ],
+  "background": {
+    "service_worker": "dist/background.js"
+  },
+  "action": {
+    "default_popup": "dist/popup.html",
+    "default_icon": "icon.png"
+  }
+}
