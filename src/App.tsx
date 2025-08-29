@@ -1,5 +1,6 @@
 import type { Review } from "google-maps-review-scraper";
 import { useEffect, useState } from "react";
+import { Button } from "./components/ui/button";
 
 function getPlaceName(url: string): string {
   const match = url.match(/maps\/place\/([^/]+)/);
@@ -37,6 +38,8 @@ function App() {
       </h1>
 
       <canvas id="ratingChart"> </canvas>
+
+      <Button>Load more reviews</Button>
     </>
   )
 } 
