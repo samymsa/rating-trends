@@ -4,13 +4,7 @@
   "version": "1.0",
   "description": "See how a place’s reputation changes over time.",
   "permissions": ["declarativeContent", "scripting", "tabs", "activeTab"],
-  "host_permissions": ["https://google.com/maps/*"],
-  "content_scripts": [
-    {
-      "matches": ["https://*/maps/*"],
-      "js": ["dist/content.js"]
-    }
-  ],
+  "host_permissions": ["https://www.google.com/maps/*"],
   "background": {
     "service_worker": "dist/background.js"
   },
