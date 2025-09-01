@@ -23,7 +23,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      url: "./src/polyfills/url.ts",
+      url: path.resolve(__dirname, "./src/polyfills/url.ts"),
       "@": path.resolve(__dirname, "./src"),
     },
   },
