@@ -1,4 +1,3 @@
-import type { Review } from "google-maps-review-scraper";
 import { useEffect, useState } from "react";
 import { RatingsChart } from "./components/ratings-chart";
 import { Button } from "./components/ui/button";
@@ -25,23 +24,6 @@ function App() {
     }
 
     updatePlaceName();
-  }, []);
-
-  useEffect(() => {
-    async function updateRatingChart() {
-      const [tab] = await chrome.tabs.query({
-        active: true,
-        currentWindow: true,
-      });
-      const reviews: Review[] = await chrome.runtime.sendMessage({
-        type: "GET_REVIEWS",
-        url: tab.url,
-      });
-
-      console.log("reviews:", reviews);
-    }
-
-    updateRatingChart();
   }, []);
 
   return (

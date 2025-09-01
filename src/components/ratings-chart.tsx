@@ -1,6 +1,6 @@
 "use client";
 
-import { CartesianGrid, Line, LineChart, XAxis } from "recharts";
+import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 
 import {
   type ChartConfig,
@@ -8,67 +8,153 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import type { Review } from "google-maps-review-scraper";
+import { useEffect, useState } from "react";
 
 export const description = "A line chart";
 
-const chartData = [
-  { month: "January", desktop: 186 },
-  { month: "February", desktop: 305, scatter: 98 },
-  { month: "March", desktop: 237, scatter: 126 },
-  { month: "April", desktop: 73, scatter: 87 },
-  { month: "May", desktop: 209 },
-  { month: "June", desktop: 214 },
-];
+// const chartData = [
+//   { month: "January", desktop: 186 },
+//   { month: "February", desktop: 305, scatter: 98 },
+//   { month: "March", desktop: 237, scatter: 126 },
+//   { month: "April", desktop: 73, scatter: 87 },
+//   { month: "May", desktop: 209 },
+//   { month: "June", desktop: 214 },
+// ];
 
 const chartConfig = {
-  desktop: {
-    label: "Desktop",
+  rating: {
+    label: "Rating",
     color: "var(--chart-1)",
   },
-  scatter: {
-    label: "Scatter",
+  average: {
+    label: "Average",
     color: "var(--chart-2)",
   },
 } satisfies ChartConfig;
 
+function getFixedRangeAverages(reviews: Review[], numRanges = 5) {
+  if (!reviews) {
+    return [];
+  }
+
+  const minTime = Math.min(...reviews.map((r) => r.time.published / 1000));
+  const maxTime = Math.max(...reviews.map((r) => r.time.published / 1000));
+  const rangeSize = (maxTime - minTime) / numRanges;
+
+  const ranges = Array.from({ length: numRanges }, (_, i) => ({
+    start: minTime + i * rangeSize,
+    end: minTime + (i + 1) * rangeSize,
+    ratings: [] as number[],
+  }));
+
+  reviews.forEach((review) => {
+    const reviewTime = review.time.published / 1000;
+    const rangeIndex = Math.min(
+      Math.floor((reviewTime - minTime) / rangeSize),
+      numRanges - 1,
+    );
+    ranges[rangeIndex].ratings.push(review.review.rating);
+  });
+
+  return ranges
+    .map((range) => ({
+      time: (range.start + range.end) / 2,
+      average:
+        range.ratings.length > 0
+          ? range.ratings.reduce((sum, rating) => sum + rating, 0) /
+            range.ratings.length
+          : null,
+    }))
+    .filter((point) => point.average !== null);
+}
+
+function prepareChartData(reviews: Review[]) {
+  const reviewsData = reviews.map((review) => {
+    return {
+      time: review.time.published / 1000, // Convert from microseconds to milliseconds
+      rating: review.review.rating,
+      average: null as number | null,
+    };
+  });
+
+  const averagesData = getFixedRangeAverages(reviews, 5).map((point) => ({
+    ...point,
+    rating: null as number | null,
+  }));
+
+  return averagesData.concat(reviewsData);
+}
+
 export function RatingsChart() {
+  const [chartData, setChartData] = useState<object[]>([]);
+
+  useEffect(() => {
+    async function updateRatingChart() {
+      const [tab] = await chrome.tabs.query({
+        active: true,
+        currentWindow: true,
+      });
+
+      const { reviews } = await chrome.runtime.sendMessage({
+        type: "GET_REVIEWS",
+        url: tab.url,
+      });
+
+      console.log("Fetched reviews:", reviews);
+
+      setChartData(prepareChartData(reviews));
+    }
+
+    updateRatingChart();
+  }, []);
+
   return (
     <ChartContainer config={chartConfig} className="my-4">
-      <LineChart
-        accessibilityLayer
-        data={chartData}
-        margin={{
-          left: 12,
-          right: 12,
-        }}
-      >
+      <LineChart accessibilityLayer data={chartData}>
         <CartesianGrid vertical={false} />
         <XAxis
-          dataKey="month"
+          dataKey="time"
+          domain={["auto", "auto"]}
+          type="number"
+          name="Time"
           tickLine={false}
           axisLine={false}
           tickMargin={8}
-          tickFormatter={(value) => value.slice(0, 3)}
+          tickFormatter={(value) =>
+            new Date(value).toLocaleDateString(undefined, {
+              year: "2-digit",
+              month: "short",
+            })
+          }
+        />
+        <YAxis
+          dataKey="rating"
+          domain={[0, 6]}
+          type="number"
+          name="Rating"
+          tickLine={false}
+          axisLine={false}
+          tickMargin={32}
         />
         <ChartTooltip
           cursor={false}
           content={<ChartTooltipContent hideLabel />}
         />
         <Line
-          dataKey="desktop"
-          type="natural"
-          stroke="var(--color-desktop)"
-          strokeWidth={2}
-          dot={false}
+          dataKey="rating"
+          stroke="transparent"
+          dot={{
+            fill: "var(--color-rating)",
+          }}
+          isAnimationActive={false}
         />
         <Line
-          dataKey="scatter"
+          dataKey="average"
           type="natural"
-          stroke="transparent"
+          stroke="var(--color-average)"
           strokeWidth={2}
-          dot={{
-            fill: "var(--color-desktop)",
-          }}
+          dot={false}
         />
       </LineChart>
     </ChartContainer>

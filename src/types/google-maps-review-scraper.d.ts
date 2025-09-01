@@ -2,8 +2,8 @@ declare module "google-maps-review-scraper" {
   interface Review {
     review_id: string;
     time: {
-      published: string;
-      last_edited: string;
+      published: number; // in microseconds
+      last_edited: number;
     };
     author: {
       name: string;
@@ -12,25 +12,26 @@ declare module "google-maps-review-scraper" {
       id: string;
     };
     review: {
-      rating: string;
-      text: string | null;
-      langage: string | null;
+      rating: number;
+      text: string;
+      language: string;
     };
-    images: {
+    images: Array<{
       id: string;
       url: string;
       size: {
-        width: string;
-        height: string;
+        width: number;
+        height: number;
       };
       location: {
         friendly: string;
-        lat: string;
-        long: string;
+        lat: number;
+        long: number;
       };
       caption: string | null;
-    } | null;
-    source: string | null;
+    }> | null;
+    source: string;
+    response: string | null;
   }
 
   type ScraperOutput = Review[];
@@ -44,6 +45,6 @@ declare module "google-maps-review-scraper" {
 
   export function scraper(
     url: string,
-    options?: ScraperOptions
+    options?: ScraperOptions,
   ): Promise<string>;
 }
