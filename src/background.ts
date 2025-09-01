@@ -17,13 +17,13 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
-async function getReviews(url: string) {
+async function getReviews(url: string, pages: number = 1) {
   const dotComUrl = url.replace(/google(\.[a-z]{2,3}){1,2}/, "google.com");
 
   const rawReviews = await scraper(dotComUrl, {
     sort_type: "newest",
     clean: true,
-    pages: 1,
+    pages: pages,
   });
 
   const reviews = JSON.parse(rawReviews);
@@ -31,17 +31,19 @@ async function getReviews(url: string) {
   return reviews;
 }
 
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  if (message.type === "GET_REVIEWS") {
-    getReviews(message.url)
-      .then((reviews) => {
-        sendResponse({ reviews });
-      })
-      .catch((error) => {
-        console.error("Error fetching reviews:", error);
-        sendResponse({ error: error.message });
-      });
-  }
+chrome.runtime.onMessage.addListener(
+  ({ type, url, pages }, _sender, sendResponse) => {
+    if (type === "GET_REVIEWS") {
+      getReviews(url, pages)
+        .then((reviews) => {
+          sendResponse({ reviews });
+        })
+        .catch((error) => {
+          console.error("Error fetching reviews:", error);
+          sendResponse({ error: error.message });
+        });
+    }
 
-  return true; // Indicates that the response will be sent asynchronously
-});
+    return true; // Indicates that the response will be sent asynchronously
+  },
+);

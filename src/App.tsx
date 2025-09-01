@@ -7,6 +7,7 @@ import { Button } from "./components/ui/button";
 
 function App() {
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [pages, setPages] = useState<number>(1);
 
   useEffect(() => {
     async function updateRatingChart() {
@@ -22,13 +23,14 @@ function App() {
       } = await chrome.runtime.sendMessage({
         type: "GET_REVIEWS",
         url: tab.url,
+        pages,
       });
 
       setReviews(reviewsData || []);
     }
 
     updateRatingChart();
-  }, []);
+  }, [pages]);
 
   return (
     <>
@@ -36,7 +38,9 @@ function App() {
       <AverageRating reviews={reviews} />
       <RatingsChart reviews={reviews} />
 
-      <Button>Load more reviews</Button>
+      <Button onClick={() => setPages((prev) => prev + 1)}>
+        Load 10 More Reviews
+      </Button>
     </>
   );
 }
