@@ -9,18 +9,8 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import type { Review } from "google-maps-review-scraper";
-import { useEffect, useState } from "react";
 
 export const description = "A line chart";
-
-// const chartData = [
-//   { month: "January", desktop: 186 },
-//   { month: "February", desktop: 305, scatter: 98 },
-//   { month: "March", desktop: 237, scatter: 126 },
-//   { month: "April", desktop: 73, scatter: 87 },
-//   { month: "May", desktop: 209 },
-//   { month: "June", desktop: 214 },
-// ];
 
 const chartConfig = {
   rating: {
@@ -62,8 +52,12 @@ function getFixedRangeAverages(reviews: Review[], numRanges = 5) {
       time: (range.start + range.end) / 2,
       average:
         range.ratings.length > 0
-          ? range.ratings.reduce((sum, rating) => sum + rating, 0) /
-            range.ratings.length
+          ? parseFloat(
+              (
+                range.ratings.reduce((sum, rating) => sum + rating, 0) /
+                range.ratings.length
+              ).toFixed(1),
+            )
           : null,
     }))
     .filter((point) => point.average !== null);
@@ -86,28 +80,8 @@ function prepareChartData(reviews: Review[]) {
   return averagesData.concat(reviewsData);
 }
 
-export function RatingsChart() {
-  const [chartData, setChartData] = useState<object[]>([]);
-
-  useEffect(() => {
-    async function updateRatingChart() {
-      const [tab] = await chrome.tabs.query({
-        active: true,
-        currentWindow: true,
-      });
-
-      const { reviews } = await chrome.runtime.sendMessage({
-        type: "GET_REVIEWS",
-        url: tab.url,
-      });
-
-      console.log("Fetched reviews:", reviews);
-
-      setChartData(prepareChartData(reviews));
-    }
-
-    updateRatingChart();
-  }, []);
+export function RatingsChart({ reviews }: { reviews: Review[] }) {
+  const chartData = prepareChartData(reviews);
 
   return (
     <ChartContainer config={chartConfig} className="my-4">
@@ -139,7 +113,17 @@ export function RatingsChart() {
         />
         <ChartTooltip
           cursor={false}
-          content={<ChartTooltipContent hideLabel />}
+          content={
+            <ChartTooltipContent
+              labelFormatter={(_, [{ payload }]) => {
+                return new Date(payload.time).toLocaleDateString(undefined, {
+                  year: "2-digit",
+                  month: "short",
+                  day: "numeric",
+                });
+              }}
+            />
+          }
         />
         <Line
           dataKey="rating"
