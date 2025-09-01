@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { cn } from '@/lib/utils';
-import { useControllableState } from '@radix-ui/react-use-controllable-state';
-import { type LucideProps, StarHalfIcon } from 'lucide-react';
-import type { KeyboardEvent, MouseEvent, ReactElement, ReactNode } from 'react';
+import { cn } from "@/lib/utils";
+import { useControllableState } from "@radix-ui/react-use-controllable-state";
+import { type LucideProps, StarHalfIcon } from "lucide-react";
+import type { KeyboardEvent, MouseEvent, ReactElement, ReactNode } from "react";
 import {
   Children,
   cloneElement,
@@ -13,7 +13,7 @@ import {
   useEffect,
   useRef,
   useState,
-} from 'react';
+} from "react";
 
 type RatingContextValue = {
   value: number;
@@ -22,21 +22,21 @@ type RatingContextValue = {
   focusedStar: number | null;
   handleValueChange: (
     event: MouseEvent<HTMLButtonElement> | KeyboardEvent<HTMLButtonElement>,
-    value: number
+    value: number,
   ) => void;
   handleKeyDown: (event: KeyboardEvent<HTMLButtonElement>) => void;
   setHoverValue: (value: number | null) => void;
   setFocusedStar: (value: number | null) => void;
 };
 
-type IconState = 'empty' | 'full' | 'half';
+type IconState = "empty" | "full" | "half";
 
 const RatingContext = createContext<RatingContextValue | null>(null);
 
 const useRating = () => {
   const context = useContext(RatingContext);
   if (!context) {
-    throw new Error('useRating must be used within a Rating component');
+    throw new Error("useRating must be used within a Rating component");
   }
   return context;
 };
@@ -62,7 +62,12 @@ export const RatingButton = ({
   } = useRating();
 
   const index = providedIndex ?? 0;
-  const iconState: IconState = (value ?? 0) >= index + 1 ? 'full' : ((value ?? 0) >= index + 0.5 ? 'half' : 'empty');
+  const iconState: IconState =
+    (value ?? 0) >= index + 1
+      ? "full"
+      : (value ?? 0) >= index + 0.5
+        ? "half"
+        : "empty";
   let tabIndex = -1;
 
   if (!readOnly) {
@@ -73,7 +78,7 @@ export const RatingButton = ({
     (event: MouseEvent<HTMLButtonElement>) => {
       handleValueChange(event, index + 1);
     },
-    [handleValueChange, index]
+    [handleValueChange, index],
   );
 
   const handleMouseEnter = useCallback(() => {
@@ -93,10 +98,10 @@ export const RatingButton = ({
   return (
     <button
       className={cn(
-        'flex relative rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-        'p-0.5',
-        readOnly && 'cursor-default',
-        className
+        "focus-visible:ring-ring relative flex rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+        "p-0.5",
+        readOnly && "cursor-default",
+        className,
       )}
       disabled={readOnly}
       onBlur={handleBlur}
@@ -110,22 +115,22 @@ export const RatingButton = ({
       {cloneElement(icon, {
         size,
         className: cn(
-          'transition-colors duration-200',
-          (iconState === 'full' || iconState === 'half') && 'fill-current',
-          !readOnly && 'cursor-pointer'
+          "transition-colors duration-200",
+          (iconState === "full" || iconState === "half") && "fill-current",
+          !readOnly && "cursor-pointer",
         ),
-        'aria-hidden': 'true',
+        "aria-hidden": "true",
       })}
 
       {cloneElement(icon, {
         size,
         className: cn(
-          'duration-200 transition-colors',
-          iconState === 'full' && 'fill-current',
-          !readOnly && 'cursor-pointer',
-          'absolute scale-x-[-1]'
+          "transition-colors duration-200",
+          iconState === "full" && "fill-current",
+          !readOnly && "cursor-pointer",
+          "absolute scale-x-[-1]",
         ),
-        'aria-hidden': 'true',
+        "aria-hidden": "true",
       })}
     </button>
   );
@@ -136,7 +141,7 @@ export type RatingProps = {
   value?: number;
   onChange?: (
     event: MouseEvent<HTMLButtonElement> | KeyboardEvent<HTMLButtonElement>,
-    value: number
+    value: number,
   ) => void;
   onValueChange?: (value: number) => void;
   readOnly?: boolean;
@@ -166,14 +171,14 @@ export const Rating = ({
   const handleValueChange = useCallback(
     (
       event: MouseEvent<HTMLButtonElement> | KeyboardEvent<HTMLButtonElement>,
-      newValue: number
+      newValue: number,
     ) => {
       if (!readOnly) {
         onChange?.(event, newValue);
         onValueChange?.(newValue);
       }
     },
-    [readOnly, onChange, onValueChange]
+    [readOnly, onChange, onValueChange],
   );
 
   const handleKeyDown = useCallback(
@@ -186,14 +191,14 @@ export const Rating = ({
       let newValue = focusedStar !== null ? focusedStar : (value ?? 0);
 
       switch (event.key) {
-        case 'ArrowRight':
+        case "ArrowRight":
           if (event.shiftKey || event.metaKey) {
             newValue = total;
           } else {
             newValue = Math.min(total, newValue + 1);
           }
           break;
-        case 'ArrowLeft':
+        case "ArrowLeft":
           if (event.shiftKey || event.metaKey) {
             newValue = 1;
           } else {
@@ -208,12 +213,12 @@ export const Rating = ({
       setFocusedStar(newValue);
       handleValueChange(event, newValue);
     },
-    [focusedStar, value, children, readOnly, handleValueChange]
+    [focusedStar, value, children, readOnly, handleValueChange],
   );
 
   useEffect(() => {
     if (focusedStar !== null && containerRef.current) {
-      const buttons = containerRef.current.querySelectorAll('button');
+      const buttons = containerRef.current.querySelectorAll("button");
       buttons[focusedStar - 1]?.focus();
     }
   }, [focusedStar]);
@@ -233,7 +238,7 @@ export const Rating = ({
     <RatingContext.Provider value={contextValue}>
       <div
         aria-label="Rating"
-        className={cn('inline-flex items-baseline', className)}
+        className={cn("inline-flex items-baseline", className)}
         onMouseLeave={() => setHoverValue(null)}
         ref={containerRef}
         role="radiogroup"
