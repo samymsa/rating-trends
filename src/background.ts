@@ -1,4 +1,7 @@
-import { scraper } from "google-maps-review-scraper";
+import { type Review } from "google-maps-review-scraper";
+import parseReviews from "google-maps-review-scraper/src/parser";
+import { SortEnum } from "google-maps-review-scraper/src/types";
+import { fetchReviews } from "google-maps-review-scraper/src/utils";
 
 // Only enable extension on https://www.google.*/maps/place/*
 const rule = {
@@ -17,26 +20,42 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
-async function getReviews(url: string, pages: number = 1) {
+export type GetReviewsResponse = {
+  reviews: Review[];
+  nextPage: string;
+};
+
+async function getReviews(
+  url: string,
+  nextPage: string = "",
+  sort: keyof typeof SortEnum = "newest",
+): Promise<GetReviewsResponse> {
   const dotComUrl = url.replace(/google(\.[a-z]{2,3}){1,2}/, "google.com");
 
-  const rawReviews = await scraper(dotComUrl, {
-    sort_type: "newest",
-    clean: true,
-    pages: pages,
-  });
+  const [, rawNextPage, rawReviews] = await fetchReviews(
+    dotComUrl,
+    SortEnum[sort],
+    nextPage,
+  );
 
-  const reviews = JSON.parse(rawReviews);
+  const cleanedData = await parseReviews(rawReviews);
+  const newNextPage = rawNextPage?.replace(/"/g, "");
+  const reviews = JSON.parse(cleanedData) as Review[];
+  console.log("Fetched reviews:", reviews);
+  console.log("Next page token:", newNextPage);
 
-  return reviews;
+  return {
+    reviews,
+    nextPage: newNextPage || "",
+  };
 }
 
 chrome.runtime.onMessage.addListener(
-  ({ type, url, pages }, _sender, sendResponse) => {
+  ({ type, url, nextPage }, _sender, sendResponse) => {
     if (type === "GET_REVIEWS") {
-      getReviews(url, pages)
-        .then((reviews) => {
-          sendResponse({ reviews });
+      getReviews(url, nextPage)
+        .then((response) => {
+          sendResponse(response);
         })
         .catch((error) => {
           console.error("Error fetching reviews:", error);
