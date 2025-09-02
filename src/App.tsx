@@ -30,10 +30,17 @@ function App() {
         nextPage: pageToken,
       });
 
-    setReviewsState((prev) => ({
-      reviews: [...prev.reviews, ...reviewsData],
-      nextPage: nextPageData,
-    }));
+    setReviewsState((prev) => {
+      // Use an object keyed by timestamp for deduplication
+      const reviewMap: { [timestamp: number]: (typeof reviewsData)[0] } = {};
+      for (const review of [...prev.reviews, ...reviewsData]) {
+        reviewMap[review.time.published] = review;
+      }
+      return {
+        reviews: Object.values(reviewMap),
+        nextPage: nextPageData,
+      };
+    });
   }
 
   return (
