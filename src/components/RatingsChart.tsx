@@ -127,7 +127,8 @@ export function RatingsChart({ reviews }: { reviews: Review[] }) {
         />
         <Line
           dataKey="rating"
-          stroke="transparent"
+          stroke="var(--color-rating)"
+          strokeWidth={0}
           dot={{
             fill: "var(--color-rating)",
           }}
@@ -139,6 +140,7 @@ export function RatingsChart({ reviews }: { reviews: Review[] }) {
           stroke="var(--color-average)"
           strokeWidth={2}
           dot={false}
+          activeDot={false}
         />
       </LineChart>
     </ChartContainer>
