@@ -37,7 +37,7 @@ function App() {
   }
 
   return (
-    <>
+    <div className="space-y-2">
       <PlaceName />
       <AverageRating reviews={reviews} />
       <RatingsChart reviews={reviews} />
@@ -45,7 +45,7 @@ function App() {
       <Button onClick={() => fetchReviews(nextPage)}>
         Load 10 More Reviews
       </Button>
-    </>
+    </div>
   );
 }
 
