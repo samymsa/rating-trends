@@ -34,7 +34,7 @@ function App() {
       // Use an object keyed by timestamp for deduplication
       const reviewMap: { [timestamp: number]: (typeof reviewsData)[0] } = {};
       for (const review of [...prev.reviews, ...reviewsData]) {
-        reviewMap[review.time.published] = review;
+        reviewMap[review.time.last_edited] = review;
       }
       return {
         reviews: Object.values(reviewMap),

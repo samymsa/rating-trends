@@ -28,8 +28,8 @@ function getFixedRangeAverages(reviews: Review[], numRanges = 5) {
     return [];
   }
 
-  const minTime = Math.min(...reviews.map((r) => r.time.published / 1000));
-  const maxTime = Math.max(...reviews.map((r) => r.time.published / 1000));
+  const minTime = Math.min(...reviews.map((r) => r.time.last_edited / 1000));
+  const maxTime = Math.max(...reviews.map((r) => r.time.last_edited / 1000));
   const rangeSize = (maxTime - minTime) / numRanges;
 
   const ranges = Array.from({ length: numRanges }, (_, i) => ({
@@ -39,7 +39,7 @@ function getFixedRangeAverages(reviews: Review[], numRanges = 5) {
   }));
 
   reviews.forEach((review) => {
-    const reviewTime = review.time.published / 1000;
+    const reviewTime = review.time.last_edited / 1000;
     const rangeIndex = Math.min(
       Math.floor((reviewTime - minTime) / rangeSize),
       numRanges - 1,
@@ -66,7 +66,7 @@ function getFixedRangeAverages(reviews: Review[], numRanges = 5) {
 function prepareChartData(reviews: Review[]) {
   const reviewsData = reviews.map((review) => {
     return {
-      time: review.time.published / 1000, // Convert from microseconds to milliseconds
+      time: review.time.last_edited / 1000, // Convert from microseconds to milliseconds
       rating: review.review.rating,
       average: null as number | null,
     };
