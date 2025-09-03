@@ -6,10 +6,10 @@
   "permissions": ["declarativeContent", "scripting", "tabs", "activeTab"],
   "host_permissions": ["https://www.google.com/maps/*"],
   "background": {
-    "service_worker": "dist/background.js"
+    "service_worker": "background.js"
   },
   "action": {
-    "default_popup": "dist/popup.html",
+    "default_popup": "popup.html",
     "default_icon": "icon.png"
   }
 }
