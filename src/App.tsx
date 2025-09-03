@@ -1,44 +1,59 @@
-import type { Review } from "google-maps-review-scraper";
 import { useEffect, useState } from "react";
-
-function getPlaceName(url: string): string {
-  const match = url.match(/maps\/place\/([^/]+)/);
-  return match ? decodeURIComponent(match[1].replace(/\+/g, " ")) : "Unknown Place";
-}
+import type { GetReviewsResponse } from "./background";
+import { AverageRating } from "./components/AverageRating";
+import { PlaceName } from "./components/PlaceName";
+import { RatingsChart } from "./components/RatingsChart";
+import { Button } from "./components/ui/button";
 
 function App() {
-  const [placeName, setPlaceName] = useState<string>("");
+  const [{ reviews, nextPage }, setReviewsState] = useState<GetReviewsResponse>(
+    {
+      reviews: [],
+      nextPage: "",
+    },
+  );
 
   useEffect(() => {
-    async function updatePlaceName() {
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      const newPlaceName = getPlaceName(tab.url || "");
-      setPlaceName(newPlaceName);
-    }
-
-    updatePlaceName();
+    fetchReviews();
   }, []);
 
-  useEffect(() => {
-    async function updateRatingChart() {
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      const reviews: Review[] = await chrome.runtime.sendMessage({ type: "GET_REVIEWS", url: tab.url });
-      
-      console.log("reviews:", reviews);
-    }
+  async function fetchReviews(pageToken: string = "") {
+    const [tab] = await chrome.tabs.query({
+      active: true,
+      currentWindow: true,
+    });
 
-    updateRatingChart();
-  }, []);
+    const { reviews: reviewsData, nextPage: nextPageData }: GetReviewsResponse =
+      await chrome.runtime.sendMessage({
+        type: "GET_REVIEWS",
+        url: tab.url,
+        nextPage: pageToken,
+      });
+
+    setReviewsState((prev) => {
+      // Use an object keyed by timestamp for deduplication
+      const reviewMap: { [timestamp: number]: (typeof reviewsData)[0] } = {};
+      for (const review of [...prev.reviews, ...reviewsData]) {
+        reviewMap[review.time.last_edited] = review;
+      }
+      return {
+        reviews: Object.values(reviewMap),
+        nextPage: nextPageData,
+      };
+    });
+  }
 
   return (
-    <>
-      <h1>
-        {placeName}
-      </h1>
+    <div className="space-y-2">
+      <PlaceName />
+      <AverageRating reviews={reviews} />
+      <RatingsChart reviews={reviews} />
 
-      <canvas id="ratingChart"> </canvas>
-    </>
-  )
-} 
+      <Button onClick={() => fetchReviews(nextPage)}>
+        Load 10 More Reviews
+      </Button>
+    </div>
+  );
+}
 
-export default App
+export default App;

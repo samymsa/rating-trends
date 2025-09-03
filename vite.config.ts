@@ -1,16 +1,18 @@
+import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
+import path from "path";
 import { defineConfig } from "vite";
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
+
   base: "", // This removes the leading slash from asset URLs
   build: {
     rollupOptions: {
       input: {
         popup: "popup.html",
         background: "src/background.ts",
-        content: "src/content.ts",
       },
       output: {
         entryFileNames: "[name].js",
@@ -21,7 +23,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      url: "./src/polyfills/url.ts",
+      url: path.resolve(__dirname, "./src/polyfills/url.ts"),
+      "@": path.resolve(__dirname, "./src"),
     },
   },
 });
