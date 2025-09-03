@@ -41,9 +41,6 @@ async function getReviews(
   const cleanedData = await parseReviews(rawReviews);
   const newNextPage = rawNextPage?.replace(/"/g, "");
   const reviews = JSON.parse(cleanedData) as Review[];
-  console.log("Fetched reviews:", reviews);
-  console.log("Next page token:", newNextPage);
-
   return {
     reviews,
     nextPage: newNextPage || "",
